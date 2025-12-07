@@ -14,9 +14,9 @@
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <li><a href="dashboard.php">Dashboard</a></li>
                     <li><a href="horario_profesor.php">Mi Horario</a></li>
-                    <li><a href="profesores.php">Profesores</a></li>
-                    <li><a href="guardias.php">Guardias</a></li>
-                    <li><a href="ausencias.php">Ausencias</a></li>
+                    <li><a href="profesores.html">Profesores</a></li>
+                    <li><a href="guardias.html">Guardias</a></li>
+                    <li><a href="ausencias.html">Ausencias</a></li>
                     <li><a href="logout.php">Cerrar Sesión</a></li>
                 <?php endif; ?>
 

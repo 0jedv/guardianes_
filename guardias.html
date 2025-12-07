@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Guardias - Sistema Guardianes</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #34495e;
+            color: white;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        tbody tr:hover {
+            background: #e9ecef;
+        }
+
+        select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            min-width: 200px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.php">Inicio</a></li>
+                <li><a href="dashboard.php">Dashboard</a></li>
+                <li><a href="horario_profesor.php">Mi Horario</a></li>
+                <li><a href="profesores.html">Profesores</a></li>
+                <li><a href="guardias.html">Guardias</a></li>
+                <li><a href="ausencias.html">Ausencias</a></li>
+                <li><a href="logout.php">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Gestión de Guardias</h1>
+
+        <div class="info-box">
+            <h3>📋 Guardias Pendientes de Asignación</h3>
+            <p>Aquí se muestran las clases que necesitan un profesor sustituto debido a ausencias.</p>
+            <p><strong>Admin:</strong> Puedes asignar profesores disponibles para cubrir estas guardias.</p>
+            <p><strong>Profesores:</strong> Puedes ver las guardias pendientes y asignadas.</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Día</th>
+                    <th>Horario</th>
+                    <th>Asignatura</th>
+                    <th>Profesor Ausente</th>
+                    <th>Sustituto</th>
+                </tr>
+            </thead>
+            <tbody id="guardias-tbody">
+                <tr>
+                    <td colspan="6" style="text-align:center;">Cargando...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="empty-state" style="display:none;">
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <h3>No hay guardias pendientes</h3>
+                <p>Actualmente no hay guardias que necesiten asignación.</p>
+                <p>Las guardias se generan automáticamente cuando se registra una ausencia.</p>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        // Verificar sesión y cargar guardias al cargar la página
+        document.addEventListener('DOMContentLoaded', async () => {
+            const session = await getSession();
+            window.currentSession = session; // Guardar sesión para usar en renderizado
+            renderGuardiasTable();
+        });
+    </script>
+</body>
+
+</html>
