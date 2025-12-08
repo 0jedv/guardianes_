@@ -43,6 +43,26 @@ El archivo `api_rest.php` es el núcleo del backend. Funciona como un "Front Con
 
 ---
 
+## 🔐 Variables de Sesión (`$_SESSION`)
+
+El sistema utiliza sesiones de PHP para mantener la autenticación del usuario. Al iniciar sesión correctamente, se almacenan las siguientes variables globales, que son cruciales para el control de acceso y la personalización:
+
+1.  **`$_SESSION['user_id']`**:
+    *   **Contenido**: El ID numérico único del usuario (profesor) en la base de datos (e.g., `1`, `42`).
+    *   **Uso**: Se utiliza para vincular acciones (como crear una ausencia) con el usuario autenticado y para filtrar consultas (e.g., "ver solo mis ausencias").
+
+2.  **`$_SESSION['user_name']`**:
+    *   **Contenido**: El nombre completo del usuario, concatenando `nombre` y `apellidos` (e.g., `"Juan Pérez"`).
+    *   **Uso**: Principalmente cosmético, se utiliza para mostrar un mensaje de bienvenida personalizado en el dashboard o en la cabecera.
+
+3.  **`$_SESSION['user_role']`**:
+    *   **Contenido**: El rol del usuario, que puede ser `'profesor'` o `'admin'`.
+    *   **Uso**: Crítico para el control de acceso (ACL). Define qué acciones puede realizar el usuario (e.g., solo 'admin' puede crear usuarios o asignar sustituciones).
+
+Estas variables se inicializan en el endpoint `login` de `api_rest.php` y se verifican en cada petición protegida mediante la función `validateSession()` y, para acciones de administrador, `validateAdmin()`.
+
+---
+
 ## 📂 Estructura de Carpetas
 
 ```
