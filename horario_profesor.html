@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Horario - Sistema de Gestión de Guardias</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="horario_profesor.html">Mi Horario</a></li>
+                <li><a href="profesores.html">Profesores</a></li>
+                <li><a href="guardias.html">Guardias</a></li>
+                <li><a href="ausencias.html">Ausencias</a></li>
+                <li><a href="logout.php">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Horario de <span id="profesor-nombre"></span></h1>
+        <p><strong>Departamento:</strong> <span id="profesor-departamento"></span></p>
+
+        <div id="teacher-selector" style="margin-bottom: 20px; display: none;">
+            <form style="display: inline-flex; gap: 10px; align-items: center;">
+                <label for="profesor_id">Ver horario de:</label>
+                <select name="profesor_id" id="profesor_id"
+                    style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                </select>
+            </form>
+        </div>
+
+        <div id="no-schedule-message" class="alert"
+            style="background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; display: none;">
+            No hay horarios asignados para este profesor en el curso actual.
+        </div>
+
+        <div class="schedule-grid" id="schedule-container">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody id="schedule-body">
+                    <!-- Se llenará dinámicamente con JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <a href="dashboard.html" class="btn">Volver al Dashboard</a>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> Sistema de Gestión de Guardias</p>
+    </footer>
+    <script src="js/horario_profesor.js"></script>
+</body>
+
+</html>

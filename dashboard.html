@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema de Gestión de Guardias</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="horario_profesor.html">Mi Horario</a></li>
+                <li><a href="profesores.html">Profesores</a></li>
+                <li><a href="guardias.html">Guardias</a></li>
+                <li><a href="ausencias.html">Ausencias</a></li>
+                <li><a href="logout.php">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <h1>Dashboard</h1>
+        <h2>Bienvenido, <span id="user-name"></span></h2>
+        <h3>Tu rol asignado es "<span id="user-role"></span>"</h3>
+        <div style="display: flex; gap: 20px; margin-top: 20px;">
+            <div
+                style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1;">
+                <h3>Profesores Activos</h3>
+                <p style="font-size: 2rem; font-weight: bold; color: var(--primary-color);" id="total-profesores">-</p>
+            </div>
+            <div
+                style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1;">
+                <h3>Guardias Hoy</h3>
+                <p style="font-size: 2rem; font-weight: bold; color: var(--primary-color);" id="guardias-hoy">-</p>
+            </div>
+            <div
+                style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1;">
+                <h3>Ausencias Hoy</h3>
+                <p style="font-size: 2rem; font-weight: bold; color: var(--danger-color);" id="ausencias-hoy">-</p>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; <span id="year"></span> Sistema de Gestión de Guardias</p>
+    </footer>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

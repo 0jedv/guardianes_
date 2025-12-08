@@ -10,18 +10,32 @@ const API_URL = 'api_rest.php';
 /**
  * Realiza una petición GET a la API
  */
+/**
+ * Realiza una petición GET a la API
+ */
 async function apiGet(action) {
     try {
+        console.log(`📡 apiGet: Solicitando acción '${action}'...`);
         const response = await fetch(`${API_URL}?action=${action}`);
+
+        // Verificar si la respuesta es válida (status 200-299)
+        if (!response.ok) {
+            const textHTML = await response.text();
+            console.error(`❌ Error HTTP ${response.status}:`, textHTML);
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+
         const data = await response.json();
+        console.log(`✅ apiGet ('${action}'): Respuesta recibida`, data);
 
         if (!data.success) {
+            console.warn(`⚠️ apiGet ('${action}'): La API devolvió success=false`, data.message);
             throw new Error(data.message || 'Error en la petición');
         }
 
         return data;
     } catch (error) {
-        console.error('Error en apiGet:', error);
+        console.error(`❌ apiGet ('${action}') Falló:`, error);
         showMessage(error.message, 'error');
         throw error;
     }
@@ -32,6 +46,7 @@ async function apiGet(action) {
  */
 async function apiPost(action, body) {
     try {
+        console.log(`📡 apiPost: Enviando acción '${action}'...`, body);
         const response = await fetch(`${API_URL}?action=${action}`, {
             method: 'POST',
             headers: {
@@ -40,15 +55,24 @@ async function apiPost(action, body) {
             body: JSON.stringify(body)
         });
 
+        // Verificar si la respuesta es válida
+        if (!response.ok) {
+            const textHTML = await response.text();
+            console.error(`❌ Error HTTP ${response.status}:`, textHTML);
+            throw new Error(`Error del servidor: ${response.status}`);
+        }
+
         const data = await response.json();
+        console.log(`✅ apiPost ('${action}'): Respuesta recibida`, data);
 
         if (!data.success) {
+            console.warn(`⚠️ apiPost ('${action}'): La API devolvió success=false`, data.message);
             throw new Error(data.message || 'Error en la petición');
         }
 
         return data;
     } catch (error) {
-        console.error('Error en apiPost:', error);
+        console.error(`❌ apiPost ('${action}') Falló:`, error);
         showMessage(error.message, 'error');
         throw error;
     }
@@ -290,47 +314,48 @@ async function asignarGuardia(guardiaId, profesorId) {
     } catch (error) {
         return false;
     }
+}
 
-    /**
-     * Renderiza la tabla de guardias
-     */
-    async function renderGuardiasTable() {
-        const tbody = document.getElementById('guardias-tbody');
-        const emptyState = document.getElementById('empty-state');
-        const table = tbody?.closest('table');
+/**
+ * Renderiza la tabla de guardias
+ */
+async function renderGuardiasTable() {
+    const tbody = document.getElementById('guardias-tbody');
+    const emptyState = document.getElementById('empty-state');
+    const table = tbody?.closest('table');
 
-        if (!tbody) return;
+    if (!tbody) return;
 
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Cargando...</td></tr>';
 
-        const data = await fetchGuardias();
-        const { guardias, profesores_disponibles } = data;
+    const data = await fetchGuardias();
+    const { guardias, profesores_disponibles } = data;
 
-        // Obtener sesión para verificar permisos
-        const session = window.currentSession || await getSession();
-        const isAdmin = session && session.is_admin;
+    // Obtener sesión para verificar permisos
+    const session = window.currentSession || await getSession();
+    const isAdmin = session && session.is_admin;
 
-        if (guardias.length === 0) {
-            // Mostrar estado vacío
-            if (table) table.style.display = 'none';
-            if (emptyState) emptyState.style.display = 'block';
-            return;
-        }
+    if (guardias.length === 0) {
+        // Mostrar estado vacío
+        if (table) table.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+    }
 
-        // Ocultar estado vacío y mostrar tabla
-        if (table) table.style.display = 'table';
-        if (emptyState) emptyState.style.display = 'none';
+    // Ocultar estado vacío y mostrar tabla
+    if (table) table.style.display = 'table';
+    if (emptyState) emptyState.style.display = 'none';
 
-        tbody.innerHTML = guardias.map(g => `
+    tbody.innerHTML = guardias.map(g => `
         <tr>
             <td>${formatDate(g.fecha)}</td>
             <td>${capitalize(g.dia_semana)}</td>
             <td>${g.hora_inicio} - ${g.hora_fin}</td>
-            <td>${g.asignatura || '-'}</td>
+            <td>${g.modulo_nombre || g.grupo || '-'}</td>
             <td>${g.profesor_ausente_apellidos}, ${g.profesor_ausente_nombre}</td>
             <td>
                 ${g.estado === 'pendiente' ? (
-                isAdmin ? `
+            isAdmin ? `
                         <select onchange="handleGuardiaAssignment(${g.guardia_id}, this.value)" style="padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
                             <option value="">Asignar sustituto...</option>
                             ${profesores_disponibles.map(p => `<option value="${p.id}">${p.apellidos}, ${p.nombre}</option>`).join('')}
@@ -340,7 +365,7 @@ async function asignarGuardia(guardiaId, profesorId) {
                             Pendiente
                         </span>
                     `
-            ) : `
+        ) : `
                     <span style="padding: 4px 8px; border-radius: 4px; background: #d4edda; color: #155724;">
                         ${g.sustituto_apellidos}, ${g.sustituto_nombre}
                     </span>
@@ -348,51 +373,51 @@ async function asignarGuardia(guardiaId, profesorId) {
             </td>
         </tr>
     `).join('');
+}
+
+/**
+ * Maneja la asignación de guardia
+ */
+async function handleGuardiaAssignment(guardiaId, profesorId) {
+    if (!profesorId) return;
+
+    const success = await asignarGuardia(guardiaId, profesorId);
+    if (success) {
+        renderGuardiasTable();
     }
+}
 
-    /**
-     * Maneja la asignación de guardia
-     */
-    async function handleGuardiaAssignment(guardiaId, profesorId) {
-        if (!profesorId) return;
+// ==================== UTILIDADES DE FORMATO ====================
 
-        const success = await asignarGuardia(guardiaId, profesorId);
-        if (success) {
-            renderGuardiasTable();
-        }
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES');
+}
+
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// ==================== SESIÓN ====================
+
+/**
+ * Obtiene información de la sesión actual
+ */
+async function getSession() {
+    try {
+        const response = await apiGet('getSession');
+        return response.data;
+    } catch (error) {
+        // Si no hay sesión, redirigir al login
+        window.location.href = 'index.php';
+        return null;
     }
+}
 
-    // ==================== UTILIDADES DE FORMATO ====================
-
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('es-ES');
-    }
-
-    function capitalize(str) {
-        if (!str) return '';
-        return str.charAt(0).toUpperCase() + str.slice(1);
-    }
-
-    // ==================== SESIÓN ====================
-
-    /**
-     * Obtiene información de la sesión actual
-     */
-    async function getSession() {
-        try {
-            const response = await apiGet('getSession');
-            return response.data;
-        } catch (error) {
-            // Si no hay sesión, redirigir al login
-            window.location.href = 'index.php';
-            return null;
-        }
-    }
-
-    // Agregar estilos de animación
-    const style = document.createElement('style');
-    style.textContent = `
+// Agregar estilos de animación
+const style = document.createElement('style');
+style.textContent = `
     @keyframes slideIn {
         from {
             transform: translateX(100%);
@@ -415,4 +440,4 @@ async function asignarGuardia(guardiaId, profesorId) {
         }
     }
 `;
-    document.head.appendChild(style);
+document.head.appendChild(style);

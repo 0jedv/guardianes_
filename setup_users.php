@@ -1,61 +1,43 @@
 <?php
 /**
- * Script para crear usuarios de prueba con passwords correctos
- * Ejecutar una sola vez para tener usuarios de prueba
+ * Script para crear/actualizar usuarios con contraseñas correctas
+ * Ejecutar una sola vez para configurar usuarios de prueba
  */
 
 require_once 'conexion.php';
 
+echo "<h2>Configuración de Usuarios</h2>";
+
 // Crear/actualizar admin
 $admin_password = password_hash('admin123', PASSWORD_DEFAULT);
-$stmt = $pdo->prepare("SELECT id FROM profesores WHERE email = 'admin@admin.com'");
+$stmt = $pdo->prepare("SELECT id FROM profesores WHERE email = 'admin@guardianes.com'");
 $stmt->execute();
 
 if ($stmt->fetch()) {
     // Actualizar admin existente
-    $stmt = $pdo->prepare("UPDATE profesores SET password = ?, rol = 'admin' WHERE email = 'admin@admin.com'");
+    $stmt = $pdo->prepare("UPDATE profesores SET password = ?, rol = 'admin' WHERE email = 'admin@guardianes.com'");
     $stmt->execute([$admin_password]);
-    echo "✅ Admin actualizado: admin@admin.com / admin123<br>";
+    echo "✅ Admin actualizado: admin@guardianes.com / admin123<br>";
 } else {
     // Crear admin
-    $stmt = $pdo->prepare("INSERT INTO profesores (nombre, apellidos, email, password, rol, estado) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Admin', 'Sistema', 'admin@admin.com', $admin_password, 'admin', 'activo']);
-    echo "✅ Admin creado: admin@admin.com / admin123<br>";
+    $stmt = $pdo->prepare("INSERT INTO profesores (nombre, apellidos, email, password, rol, departamento, estado, fecha_alta) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute(['Admin', 'Sistema', 'admin@guardianes.com', $admin_password, 'admin', 'Administración', 'activo', date('Y-m-d')]);
+    echo "✅ Admin creado: admin@guardianes.com / admin123<br>";
 }
 
-// Crear/actualizar profesor de prueba
+// Actualizar contraseñas de todos los profesores existentes
 $profesor_password = password_hash('profesor123', PASSWORD_DEFAULT);
-$stmt = $pdo->prepare("SELECT id FROM profesores WHERE email = 'profesor@test.com'");
-$stmt->execute();
+$stmt = $pdo->prepare("UPDATE profesores SET password = ? WHERE rol = 'profesor' OR rol IS NULL");
+$stmt->execute([$profesor_password]);
+$count = $stmt->rowCount();
 
-if ($stmt->fetch()) {
-    // Actualizar profesor existente
-    $stmt = $pdo->prepare("UPDATE profesores SET password = ?, rol = 'profesor' WHERE email = 'profesor@test.com'");
-    $stmt->execute([$profesor_password]);
-    echo "✅ Profesor actualizado: profesor@test.com / profesor123<br>";
-} else {
-    // Crear profesor
-    $stmt = $pdo->prepare("INSERT INTO profesores (nombre, apellidos, email, password, rol, estado) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['Juan', 'Pérez', 'profesor@test.com', $profesor_password, 'profesor', 'activo']);
-    echo "✅ Profesor creado: profesor@test.com / profesor123<br>";
-}
+echo "✅ Contraseñas de profesores actualizadas: $count profesores<br>";
 
-// Crear otro profesor de prueba
-$stmt = $pdo->prepare("SELECT id FROM profesores WHERE email = 'maria@test.com'");
-$stmt->execute();
-
-if ($stmt->fetch()) {
-    $stmt = $pdo->prepare("UPDATE profesores SET password = ?, rol = 'profesor' WHERE email = 'maria@test.com'");
-    $stmt->execute([$profesor_password]);
-    echo "✅ Profesora actualizada: maria@test.com / profesor123<br>";
-} else {
-    $stmt = $pdo->prepare("INSERT INTO profesores (nombre, apellidos, email, password, rol, estado) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute(['María', 'García', 'maria@test.com', $profesor_password, 'profesor', 'activo']);
-    echo "✅ Profesora creada: maria@test.com / profesor123<br>";
-}
-
-echo "<br><strong>Usuarios de prueba listos!</strong><br>";
-echo "Admin: admin@admin.com / admin123<br>";
-echo "Profesor 1: profesor@test.com / profesor123<br>";
-echo "Profesor 2: maria@test.com / profesor123<br>";
+echo "<br><strong>Usuarios configurados correctamente!</strong><br>";
+echo "<br><strong>Credenciales de acceso:</strong><br>";
+echo "<ul>";
+echo "<li>Admin: admin@guardianes.com / admin123</li>";
+echo "<li>Profesores: [email del profesor] / profesor123</li>";
+echo "</ul>";
+echo "<p><a href='index.html'>Ir al login</a></p>";
 ?>
