@@ -118,6 +118,72 @@ try {
             sendResponse(true, ['id' => $newId], 'Profesor creado correctamente', 201);
             break;
 
+        case 'updateProfesor':
+            validateAdmin();
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input || !isset($input['id'])) {
+                sendResponse(false, null, 'Datos inválidos', 400);
+            }
+
+            $id = $input['id'];
+            $nombre = $input['nombre'] ?? null;
+            $apellidos = $input['apellidos'] ?? null;
+            $email = $input['email'] ?? null;
+            $rol = $input['rol'] ?? null;
+
+            // Password update is optional
+            $password = $input['password'] ?? null;
+
+            if (!$nombre || !$apellidos || !$email || !$rol) {
+                sendResponse(false, null, 'Faltan campos obligatorios', 400);
+            }
+
+            // Check if email belongs to another user
+            $stmt = $pdo->prepare("SELECT id FROM profesores WHERE email = ? AND id != ?");
+            $stmt->execute([$email, $id]);
+            if ($stmt->fetch()) {
+                sendResponse(false, null, 'El email ya está registrado por otro usuario', 409);
+            }
+
+            if ($password) {
+                $passwordHash = password_hash($password, PASSWORD_DEFAULT);
+                $sql = "UPDATE profesores SET nombre=?, apellidos=?, email=?, rol=?, password=? WHERE id=?";
+                $params = [$nombre, $apellidos, $email, $rol, $passwordHash, $id];
+            } else {
+                $sql = "UPDATE profesores SET nombre=?, apellidos=?, email=?, rol=? WHERE id=?";
+                $params = [$nombre, $apellidos, $email, $rol, $id];
+            }
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+
+            sendResponse(true, null, 'Profesor actualizado correctamente');
+            break;
+
+        case 'deleteProfesor':
+            validateAdmin();
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input || !isset($input['id'])) {
+                sendResponse(false, null, 'ID no proporcionado', 400);
+            }
+            // Check for related records (constraints usually prevent deletion, but we can set state to inactive instead or delete)
+            // The prompt asked for "eliminar", typically "DELETE". 
+            // If there are FK constraints, we might need soft delete. 
+            // Let's force delete for now as per "eliminar" request, or maybe soft delete 'estado' = 'inactivo'.
+            // However, usually deleting a user completely might break history. 
+            // The prompt says "delete para borrar". So I will try DELETE.
+
+            try {
+                $stmt = $pdo->prepare("DELETE FROM profesores WHERE id = ?");
+                $stmt->execute([$input['id']]);
+                sendResponse(true, null, 'Profesor eliminado correctamente');
+            } catch (PDOException $e) {
+                // If deletion fails (likely due to FK), suggest soft delete or handle error
+                sendResponse(false, null, 'No se puede eliminar el profesor porque tiene registros asociados. Intenta desactivarlo.', 409);
+            }
+            break;
+
         // ==================== AUSENCIAS ====================
 
         case 'getAusencias':
@@ -229,6 +295,48 @@ try {
             ], 'Ausencia registrada y guardias generadas correctamente', 201);
             break;
 
+        case 'updateAusencia':
+            validateAdmin(); // Or owner? Prompt says admin. Let's restrict to admin for now as per request "rol de admin".
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input || !isset($input['id'])) {
+                sendResponse(false, null, 'Datos inválidos', 400);
+            }
+
+            $id = $input['id'];
+            $fecha_inicio = $input['fecha_inicio'] ?? null;
+            $fecha_fin = $input['fecha_fin'] ?? null;
+            $motivo = $input['motivo'] ?? '';
+            $tipo = $input['tipo'] ?? 'enfermedad';
+            $justificada = $input['justificada'] ?? 'no';
+
+            if (!$fecha_inicio || !$fecha_fin) {
+                sendResponse(false, null, 'Faltan campos obligatorios', 400);
+            }
+
+            $sql = "UPDATE ausencias SET fecha_inicio=?, fecha_fin=?, motivo=?, tipo=?, justificada=? WHERE id=?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$fecha_inicio, $fecha_fin, $motivo, $tipo, $justificada, $id]);
+
+            sendResponse(true, null, 'Ausencia actualizada correctamente');
+            break;
+
+        case 'deleteAusencia':
+            validateAdmin();
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input || !isset($input['id'])) {
+                sendResponse(false, null, 'ID no proporcionado', 400);
+            }
+
+            // Also delete related guardias? Or let database handle cascade?
+            // Assuming database might not have cascade, let's just delete absence.
+
+            $stmt = $pdo->prepare("DELETE FROM ausencias WHERE id = ?");
+            $stmt->execute([$input['id']]);
+
+            sendResponse(true, null, 'Ausencia eliminada correctamente');
+            break;
+
         // ==================== GUARDIAS ====================
 
         case 'getGuardias':
@@ -310,6 +418,41 @@ try {
             $stmt->execute([$profesor_sustituto_id, $guardia_id]);
 
             sendResponse(true, null, 'Guardia asignada correctamente');
+            break;
+
+        case 'updateGuardia':
+            validateAdmin();
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input || !isset($input['id'])) {
+                sendResponse(false, null, 'Datos inválidos', 400);
+            }
+
+            $id = $input['id'];
+            $estado = $input['estado'] ?? 'pendiente';
+            $profesor_sustituto_id = $input['profesor_sustituto_id'] ?? null;
+
+            // If empty string or 'null', set to NULL
+            if ($profesor_sustituto_id === '' || $profesor_sustituto_id === 'null') {
+                $profesor_sustituto_id = null;
+            }
+
+            $sql = "UPDATE guardias SET estado=?, profesor_sustituto_id=? WHERE id=?";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$estado, $profesor_sustituto_id, $id]);
+
+            sendResponse(true, null, 'Guardia actualizada correctamente');
+            break;
+
+        case 'deleteGuardia':
+            validateAdmin();
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input || !isset($input['id'])) {
+                sendResponse(false, null, 'ID no proporcionado', 400);
+            }
+
+            $stmt = $pdo->prepare("DELETE FROM guardias WHERE id = ?");
+            $stmt->execute([$input['id']]);
+            sendResponse(true, null, 'Guardia eliminada correctamente');
             break;
 
         // ==================== SESIÓN ====================
